@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="hu">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Termékkód Generátor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .lang-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            user-select: none;
+        }
+
+        .flag {
+            padding: 5px;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+            margin-left: 8px;
+        }
+
+        .flag.active {
+            opacity: 1;
+            border-bottom: 2px solid #007bff;
+        }
+
+        h2 {
+            margin-top: 70px;
+            text-align: center;
+        }
+
+        label,
+        select {
+            display: block;
+            margin: 15px 0 5px;
+            width: 100%;
+        }
+
+        select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .generated {
+            margin-top: 20px;
+            font-size: 18px;
+            color: green;
+            text-align: center;
+        }
+
+        .product-list {
+            margin-top: 30px;
+            font-size: 14px;
+        }
+
+        .product-list code {
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .logo-img {
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="lang-toggle">
+            <span id="flag-hu" class="flag active" title="Magyar zászló" onclick="setLanguage('hu')">🇭🇺</span>
+            <span id="flag-en" class="flag" title="English flag" onclick="setLanguage('en')">🇬🇧</span>
+        </div>
+
+        <h2 id="title">Termékkód Generátor</h2>
+        <p id="todayDate"></p>
+
+        <label for="productCode" id="labelProduct">Termékkód:</label>
+        <select id="productCode">
+            <option value="C">C - Cede (VDE)</option>
+            <option value="K1">K1 - KN1 grit (VDE)</option>
+            <option value="K3">K3 - KN3 grit (VDE)</option>
+            <option value="Z">Z - Zevita (VDE)</option>
+            <option value="Z1">Z1 - Zeolite (VDE)</option>
+            <option value="O">O - Oysterflour (VDE)</option>
+            <option value="H">H - Charcoal (VDE)</option>
+            <option value="R">R - Redstone (VDE)</option>
+            <option value="L">L - Luzerncubes</option>
+            <option value="T">T - Timothycubes</option>
+            <option value="W">W - Chickfood (Wierikx)</option>
+            <option value="M">M - Mussle (RyV)</option>
+            <option value="Me">Me - Razorclams (DZM)</option>
+            <option value="G">G - Gom (Caldic)</option>
+        </select>
+
+        <button onclick="generateCode()"><span id="generateBtnText">Generálás</span></button>
+
+        <p class="generated"><strong><span id="generatedLabel">Generált kód:</span></strong> <span
+                id="generatedCode"></span></p>
+
+        <div class="product-list">
+            <details>
+                <summary><strong><span id="meaningLabel">Termékkódok jelentése</span></strong></summary>
+                <ul>
+                    <li><code>C</code> – Cede (VDE)</li>
+                    <li><code>K1</code> – KN1 grit (VDE)</li>
+                    <li><code>K3</code> – KN3 grit (VDE)</li>
+                    <li><code>Z</code> – Zevita (VDE)</li>
+                    <li><code>Z1</code> – Zeolite (VDE)</li>
+                    <li><code>O</code> – Oysterflour (VDE)</li>
+                    <li><code>H</code> – Charcoal (VDE)</li>
+                    <li><code>R</code> – Redstone (VDE)</li>
+                    <li><code>L</code> – Luzerncubes</li>
+                    <li><code>T</code> – Timothycubes</li>
+                    <li><code>W</code> – Chickfood (Wierikx)</li>
+                    <li><code>M</code> – Mussle (RyV)</li>
+                    <li><code>Me</code> – Razorclams (DZM)</li>
+                    <li><code>G</code> – Gom (Caldic)</li>
+                </ul>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        const validCodes = ["C", "K1", "K3", "Z", "Z1", "O", "H", "R", "L", "T", "W", "M", "Me", "G"];
+        let currentLang = "hu";
+
+        function pad(num, size) {
+            return ("000" + num).slice(-size);
+        }
+
+        function getDayOfYear(date) {
+            const start = new Date(date.getFullYear(), 0, 0);
+            const diff = date - start;
+            const oneDay = 1000 * 60 * 60 * 24;
+            return Math.floor(diff / oneDay);
+        }
+
+        function generateCode() {
+            const today = new Date();
+            const dayOfYear = pad(getDayOfYear(today), 3);
+            const yearCode = "F";
+            const serialNumber = "01";
+            const productCodeInput = document.getElementById("productCode").value.trim();
+            if (!validCodes.includes(productCodeInput)) {
+                alert(currentLang === "hu" ? "Hibás termékkód!" : "Invalid product code!");
+                return;
+            }
+            const finalCode = `${dayOfYear}${productCodeInput}${yearCode}${serialNumber}`;
+            document.getElementById("generatedCode").innerText = finalCode;
+        }
+
+        function updateDateDisplay() {
+            const today = new Date();
+            const days = ["vasárnap", "hétfő", "kedd", "szerda", "csütörtök", "péntek", "szombat"];
+            const engDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            const d = today.getDate();
+            const m = today.getMonth() + 1;
+            const y = today.getFullYear();
+            const wd = today.getDay();
+            const huText = `Ma van: ${y}. ${pad(m, 2)}. ${pad(d, 2)}, ${days[wd]}`;
+            const enText = `Today is: ${y}-${pad(m, 2)}-${pad(d, 2)}, ${engDays[wd]}`;
+            document.getElementById("todayDate").innerText = currentLang === "hu" ? huText : enText;
+        }
+
+        function setLanguage(lang) {
+            if (lang === currentLang) return;
+            currentLang = lang;
+            document.getElementById("flag-hu").classList.toggle("active", lang === "hu");
+            document.getElementById("flag-en").classList.toggle("active", lang === "en");
+            document.getElementById("title").innerText = lang === "hu" ? "Termékkód Generátor" : "Product Code Generator";
+            document.getElementById("labelProduct").innerText = lang === "hu" ? "Termékkód:" : "Product Code:";
+            document.getElementById("generateBtnText").innerText = lang === "hu" ? "Generálás" : "Generate";
+            document.getElementById("generatedLabel").innerText = lang === "hu" ? "Generált kód:" : "Generated code:";
+            document.getElementById("meaningLabel").innerText = lang === "hu" ? "Termékkódok jelentése" : "Meaning of product codes";
+            updateDateDisplay();
+            document.getElementById("generatedCode").innerText = "";
+        }
+
+        function updateDateDisplay() {
+            const today = new Date();
+            const days = ["vasárnap", "hétfő", "kedd", "szerda", "csütörtök", "péntek", "szombat"];
+            const engDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const d = today.getDate();
+            const m = today.getMonth();
+            const y = today.getFullYear();
+            const wd = today.getDay();
+
+            const huText = `Ma van: ${y}. ${pad(m + 1, 2)}. ${pad(d, 2)}, ${days[wd]}`;
+            const enText = `Today is: ${engDays[wd]}, ${monthNames[m]} ${d}, ${y}`;
+
+            document.getElementById("todayDate").innerText = currentLang === "hu" ? huText : enText;
+        }
+    </script>
+</body>
+
+</html>
